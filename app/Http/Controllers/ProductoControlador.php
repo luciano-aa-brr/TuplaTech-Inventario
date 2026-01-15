@@ -4,15 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use App\Models\Categoria;
+use App\Models\Empresa;
 use Illuminate\Http\Request;
 
 class ProductoControlador extends Controller
 {
+    /**
+     * Línea 14: Listado con Buscador y Estadísticas
+     */
     public function listarProductos(Request $solicitud)
     {
         $textoBusqueda = $solicitud->get('buscar');
         $categorias = Categoria::all();
 
+        // Buscamos productos que coincidan con nombre o código
         $todosLosProductos = Producto::with('categoria')
             ->where(function($query) use ($textoBusqueda) {
                 $query->where('nombreProducto', 'LIKE', '%' . $textoBusqueda . '%')
@@ -21,37 +26,53 @@ class ProductoControlador extends Controller
             ->orderBy('nombreProducto', 'asc')
             ->get();
 
-        return view('inventario', compact('todosLosProductos', 'textoBusqueda', 'categorias'));
+        /**
+         * Línea 32: Cálculos para el Dashboard
+         */
+        $inversionTotal = $todosLosProductos->sum(fn($p) => $p->precioCompra * $p->existenciasActuales);
+        $gananciaProyectada = $todosLosProductos->sum(fn($p) => ($p->precioVenta - $p->precioCompra) * $p->existenciasActuales);
+        $alertasStock = $todosLosProductos->where('existenciasActuales', '<', 5)->count();
+
+        return view('inventario', compact(
+            'todosLosProductos', 'textoBusqueda', 'categorias', 
+            'inversionTotal', 'gananciaProyectada', 'alertasStock'
+        ));
     }
 
+    /**
+     * Línea 47: Guardar Producto
+     */
     public function guardarProducto(Request $solicitud)
     {
-        $res = $solicitud->validate([
-            'nombreProducto' => 'required|string|max:255',
-            'precioCompra' => 'required|numeric',
-            'precioVenta' => 'required|numeric',
-            'existencias' => 'required|integer',
-            'categoriaId' => 'nullable|exists:Categorias,id'
-        ]);
-
+        $empresa = Empresa::first();
         Producto::create([
-            'nombreProducto' => $res['nombreProducto'],
+            'nombreProducto' => $solicitud->nombreProducto,
             'codigoBarras' => $solicitud->codigoBarras,
-            'precioCompra' => $res['precioCompra'],
-            'precioVenta' => $res['precioVenta'],
-            'existenciasActuales' => $res['existencias'],
-            'categoriaId' => $res['categoriaId'],
-            'empresaId' => 1, 
+            'precioCompra' => $solicitud->precioCompra,
+            'precioVenta' => $solicitud->precioVenta,
+            'existenciasActuales' => $solicitud->existencias,
+            'categoriaId' => $solicitud->categoriaId,
+            'empresaId' => $empresa->id,
         ]);
-
-        return redirect()->back()->with('exito', 'Producto creado');
+        return redirect()->back()->with('exito', '¡Producto añadido!');
     }
 
+    /**
+     * Línea 65: Guardar Categoría
+     */
+    public function guardarCategoria(Request $solicitud)
+    {
+        $empresa = Empresa::first();
+        Categoria::create(['nombreCategoria' => $solicitud->nombreCategoria, 'empresaId' => $empresa->id]);
+        return redirect()->back()->with('exito', '¡Categoría creada!');
+    }
+
+    /**
+     * Línea 72: Actualizar Producto
+     */
     public function actualizarProducto(Request $solicitud, $id)
     {
-        $producto = Producto::findOrFail($id);
-        
-        $producto->update([
+        Producto::findOrFail($id)->update([
             'nombreProducto' => $solicitud->nombreProducto,
             'codigoBarras' => $solicitud->codigoBarras,
             'precioCompra' => $solicitud->precioCompra,
@@ -59,7 +80,15 @@ class ProductoControlador extends Controller
             'existenciasActuales' => $solicitud->existencias,
             'categoriaId' => $solicitud->categoriaId,
         ]);
+        return redirect()->back()->with('exito', '¡Cambios guardados!');
+    }
 
-        return redirect()->back()->with('exito', 'Producto actualizado');
+    /**
+     * Línea 87: Eliminar Producto
+     */
+    public function eliminarProducto($id)
+    {
+        Producto::findOrFail($id)->delete();
+        return redirect()->back()->with('exito', 'Producto eliminado');
     }
 }

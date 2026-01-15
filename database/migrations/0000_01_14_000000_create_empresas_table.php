@@ -10,16 +10,14 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('Empresas', function (Blueprint $table) {
-        $table->id(); // id automático
+{
+    Schema::create('empresas', function (Blueprint $table) {
+        $table->id();
         $table->string('nombreEmpresa');
-        $table->string('identificadorFiscal')->nullable(); // RUT, NIT, etc.
-        $table->string('correoContacto');
-        $table->boolean('estaActiva')->default(true);
-        $table->timestamps(); // Crea fechaCreacion y fechaActualizacion (created_at, updated_at)
+        $table->string('rutEmpresa'); 
+        $table->timestamps();
     });
-    }
+}
 
     /**
      * Reverse the migrations.

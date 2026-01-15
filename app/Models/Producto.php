@@ -19,9 +19,8 @@ class Producto extends Model
         'categoriaId'
     ];
 
-    // Relación con la categoría
     public function categoria()
     {
         return $this->belongsTo(Categoria::class, 'categoriaId');
     }
-}
+} // <-- Asegúrate de que esta llave de cierre exista

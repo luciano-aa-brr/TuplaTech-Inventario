@@ -2,56 +2,45 @@
 
 namespace Database\Seeders;
 
-use App\Models\Empresa;
-use App\Models\Usuario;
-use App\Models\Producto;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Empresa;
+use App\Models\Categoria;
+use App\Models\Producto;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Creamos una Empresa de prueba
+        // --- Línea 14: Creamos la empresa base ---
         $miEmpresa = Empresa::create([
-            'nombreEmpresa' => 'Minimarket El Socio',
-            'identificadorFiscal' => '12345678-9',
-            'correoContacto' => 'contacto@elsocio.com',
+            'nombreEmpresa' => 'TuplaTech Shop',
+            'rutEmpresa' => '12.345.678-9' // Asegúrate que la migración tenga este campo
         ]);
 
-        // 1.5 Creamos categorías de prueba
-        $bebidas = Categoria::create(['nombreCategoria' => 'Bebidas', 'empresaId' => $miEmpresa->id]);
-        $abarrotes = Categoria::create(['nombreCategoria' => 'Abarrotes', 'empresaId' => $miEmpresa->id]);
-        $limpieza = Categoria::create(['nombreCategoria' => 'Limpieza', 'empresaId' => $miEmpresa->id]);
+        // --- Línea 20: Categorías dinámicas ---
+        $catAudio = Categoria::create(['nombreCategoria' => 'Audio', 'empresaId' => $miEmpresa->id]);
+        $catPerifericos = Categoria::create(['nombreCategoria' => 'Periféricos', 'empresaId' => $miEmpresa->id]);
+        $catAccesorios = Categoria::create(['nombreCategoria' => 'Accesorios', 'empresaId' => $miEmpresa->id]);
 
-        // 2. Creamos un Usuario administrador para esa empresa
-        Usuario::create([
-            'nombreUsuario' => 'AdminTupla',
-            'correoElectronico' => 'admin@tuplatech.com',
-            'contrasenia' => Hash::make('123456'), // Siempre encriptada
-            'rolUsuario' => 'Administrador',
-            'empresaId' => $miEmpresa->id,
+        // --- Línea 25: Productos de prueba para el Dashboard ---
+        Producto::create([
+            'nombreProducto' => 'Audífonos Gamer RGB',
+            'codigoBarras' => '750123456789',
+            'precioCompra' => 15000,
+            'precioVenta' => 25000,
+            'existenciasActuales' => 12,
+            'categoriaId' => $catAudio->id,
+            'empresaId' => $miEmpresa->id
         ]);
 
-        // 3. Creamos algunos Productos de ejemplo
-        $productos = [
-            ['nombre' => 'Coca Cola 1.5L', 'compra' => 1200, 'venta' => 1800, 'stock' => 20],
-            ['nombre' => 'Pan de Molde', 'compra' => 1500, 'venta' => 2200, 'stock' => 10],
-            ['nombre' => 'Leche Entera 1L', 'compra' => 800, 'venta' => 1100, 'stock' => 15],
-            ['nombre' => 'Café Instantáneo', 'compra' => 3000, 'venta' => 4500, 'stock' => 8],
-            ['nombre' => 'Aceite de Girasol', 'compra' => 1800, 'venta' => 2500, 'stock' => 12],
-        ];
-
-        foreach ($productos as $p) {
-            Producto::create([
-                'nombreProducto' => $p['nombre'],
-                'codigoBarras' => '780' . rand(1000, 9999),
-                'precioCompra' => $p['compra'],
-                'precioVenta' => $p['venta'],
-                'existenciasActuales' => $p['stock'],
-                'stockMinimo' => 5,
-                'empresaId' => $miEmpresa->id,
-            ]);
-        }
+        Producto::create([
+            'nombreProducto' => 'Mouse Óptico',
+            'codigoBarras' => '750987654321',
+            'precioCompra' => 8000,
+            'precioVenta' => 15000,
+            'existenciasActuales' => 4, // Disparará alerta de stock crítico
+            'categoriaId' => $catPerifericos->id,
+            'empresaId' => $miEmpresa->id
+        ]);
     }
 }
