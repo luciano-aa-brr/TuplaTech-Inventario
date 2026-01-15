@@ -7,17 +7,22 @@ use Illuminate\Http\Request;
 
 class ProductoControlador extends Controller
 {
-    // Función para mostrar la tabla
-    public function listarProductos()
+    // Muestra la lista y filtra por nombre o código
+    public function listarProductos(Request $solicitud)
     {
-        $todosLosProductos = Producto::all();
-        return view('inventario', compact('todosLosProductos'));
+        $textoBusqueda = $solicitud->get('buscar');
+
+        $todosLosProductos = Producto::where('nombreProducto', 'LIKE', '%' . $textoBusqueda . '%')
+            ->orWhere('codigoBarras', 'LIKE', '%' . $textoBusqueda . '%')
+            ->orderBy('nombreProducto', 'asc')
+            ->get();
+
+        return view('inventario', compact('todosLosProductos', 'textoBusqueda'));
     }
 
-    // Función para guardar (Asegúrate que esté DENTRO de la clase)
+    // Procesa el formulario del Modal
     public function guardarProducto(Request $solicitud)
     {
-        // Validar datos
         $datosValidados = $solicitud->validate([
             'nombreProducto' => 'required|string|max:255',
             'codigoBarras'   => 'nullable|string',
@@ -26,16 +31,15 @@ class ProductoControlador extends Controller
             'existencias'    => 'required|integer',
         ]);
 
-        // Crear en la DB
         Producto::create([
             'nombreProducto'      => $datosValidados['nombreProducto'],
             'codigoBarras'        => $datosValidados['codigoBarras'],
             'precioCompra'        => $datosValidados['precioCompra'],
             'precioVenta'         => $datosValidados['precioVenta'],
             'existenciasActuales' => $datosValidados['existencias'],
-            'empresaId'           => 1, // ID de prueba
+            'empresaId'           => 1, // ID de la empresa de prueba
         ]);
 
-        return redirect()->route('productos.listar');
+        return redirect()->route('productos.listar')->with('exito', '¡Producto guardado!');
     }
 }

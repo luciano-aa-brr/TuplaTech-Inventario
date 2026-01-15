@@ -5,90 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TuplaTech - Inventario</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-lavanda { background-color: #BFA2DB; }
+        .text-gris-oscuro { color: #2B2B2B; }
+        .bg-gris-claro { background-color: #D9D9D9; }
+    </style>
 </head>
-<body class="bg-[#D9D9D9] p-2 md:p-8">
+<body class="bg-gris-claro min-h-screen p-2 md:p-8 font-sans">
+    
     <div class="max-w-5xl mx-auto">
-        
-        <div class="bg-[#BFA2DB] p-4 md:p-6 rounded-t-xl shadow-lg">
-            <h1 class="text-2xl md:text-3xl font-bold text-[#2B2B2B]">Inventario TuplaTech</h1>
-            <p class="text-sm md:text-base text-[#4A444A]">Gestión de productos para pequeños negocios</p>
+        <header class="bg-lavanda p-6 rounded-t-2xl shadow-lg flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-gris-oscuro">TuplaTech</h1>
+                <p class="text-sm text-gris-oscuro opacity-80">Inventario Inteligente</p>
+            </div>
+            <button onclick="abrirModal()" class="bg-white text-gris-oscuro font-bold py-2 px-4 rounded-lg shadow hover:bg-opacity-90 transition-all">
+                + <span class="hidden md:inline">Nuevo Producto</span>
+            </button>
+        </header>
+
+        <div class="bg-white p-4 border-b flex flex-col md:flex-row gap-4 items-center justify-between">
+            <form action="{{ route('productos.listar') }}" method="GET" class="w-full md:w-2/3 flex gap-2">
+                <input 
+                    type="text" 
+                    name="buscar" 
+                    value="{{ $textoBusqueda ?? '' }}"
+                    placeholder="Buscar por nombre o código..." 
+                    class="w-full border-2 border-gray-200 focus:border-[#BFA2DB] rounded-xl p-3 outline-none transition-all"
+                >
+                <button type="submit" class="bg-lavanda px-6 rounded-xl font-bold">🔍</button>
+            </form>
+            @if($textoBusqueda)
+                <a href="{{ route('productos.listar') }}" class="text-sm font-bold text-purple-600 underline">Limpiar filtros</a>
+            @endif
         </div>
-        
-        <div class="bg-white shadow-xl rounded-b-xl overflow-hidden">
+
+        <div class="bg-white shadow-xl rounded-b-2xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse min-w-[600px]">
                     <thead>
-                        <tr class="bg-gray-50 border-b">
-                            <th class="p-4 text-[#4A444A] font-bold uppercase text-xs">Producto</th>
-                            <th class="p-4 text-[#4A444A] font-bold uppercase text-xs">Código</th>
-                            <th class="p-4 text-[#4A444A] font-bold uppercase text-xs text-right">Precio</th>
-                            <th class="p-4 text-[#4A444A] font-bold uppercase text-xs text-center">Stock</th>
+                        <tr class="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider">
+                            <th class="p-4">Producto</th>
+                            <th class="p-4">Código</th>
+                            <th class="p-4 text-right">Precio Venta</th>
+                            <th class="p-4 text-center">Stock</th>
                         </tr>
                     </thead>
-                    <tbody class="text-[#2B2B2B]">
-                        @foreach($todosLosProductos as $item)
+                    <tbody class="text-gris-oscuro">
+                        @forelse($todosLosProductos as $item)
                         <tr class="border-b hover:bg-purple-50 transition-colors">
-                            <td class="p-4 font-medium">{{ $item->nombreProducto }}</td>
-                            <td class="p-4 text-gray-500 font-mono text-xs">{{ $item->codigoBarras ?? 'S/N' }}</td>
-                            <td class="p-4 font-bold text-right">$ {{ number_format($item->precioVenta, 0, ',', '.') }}</td>
+                            <td class="p-4 font-semibold">{{ $item->nombreProducto }}</td>
+                            <td class="p-4 text-gray-400 font-mono text-xs">{{ $item->codigoBarras ?? 'SIN CÓDIGO' }}</td>
+                            <td class="p-4 font-bold text-right text-green-600">$ {{ number_format($item->precioVenta, 0, ',', '.') }}</td>
                             <td class="p-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold {{ $item->existenciasActuales < 10 ? 'bg-red-100 text-red-600' : 'bg-[#BFA2DB] text-[#2B2B2B]' }}">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold {{ $item->existenciasActuales < 5 ? 'bg-red-100 text-red-600' : 'bg-lavanda bg-opacity-30' }}">
                                     {{ $item->existenciasActuales }} u.
                                 </span>
                             </td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="4" class="p-20 text-center">
+                                <p class="text-gray-400 italic">No hay productos que coincidan con la búsqueda.</p>
+                            </td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
-
-        <div class="mt-6 flex justify-end">
-            <button onclick="abrirModal()" class="w-full md:w-auto bg-[#BFA2DB] hover:bg-[#a889c7] text-[#2B2B2B] font-bold py-3 px-8 rounded-lg shadow-md transition-all active:scale-95">
-                + Agregar Nuevo Producto
-            </button>
-        </div>
     </div>
 
-    <div id="modalAgregar" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div class="bg-[#BFA2DB] p-4 text-[#2B2B2B] font-bold flex justify-between items-center">
-                <span>Nuevo Producto</span>
-                <button onclick="cerrarModal()" class="text-xl">&times;</button>
+    <div id="modalAgregar" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+            <div class="bg-lavanda p-4 font-bold text-gris-oscuro flex justify-between">
+                <span>Añadir Producto</span>
+                <button onclick="cerrarModal()" class="text-2xl leading-none">&times;</button>
             </div>
-            <form action="{{ route('productos.guardar') }}" method="POST" class="p-6 space-y-5">
+            <form action="{{ route('productos.guardar') }}" method="POST" class="p-6 space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-bold text-[#4A444A] uppercase mb-1">Nombre del Producto</label>
-                    <input type="text" name="nombreProducto" class="w-full border-b-2 border-[#BFA2DB] p-2 outline-none focus:bg-purple-50 transition-colors" placeholder="Ej: Café Juan Valdez" required>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Nombre</label>
+                    <input type="text" name="nombreProducto" required class="w-full border-b-2 border-lavanda p-2 outline-none focus:bg-purple-50">
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-[#4A444A] uppercase mb-1">P. Compra</label>
-                        <input type="number" name="precioCompra" class="w-full border-b-2 border-[#BFA2DB] p-2 outline-none" placeholder="0" required>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">P. Compra</label>
+                        <input type="number" name="precioCompra" required class="w-full border-b-2 border-lavanda p-2 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[#4A444A] uppercase mb-1">P. Venta</label>
-                        <input type="number" name="precioVenta" class="w-full border-b-2 border-[#BFA2DB] p-2 outline-none" placeholder="0" required>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">P. Venta</label>
+                        <input type="number" name="precioVenta" required class="w-full border-b-2 border-lavanda p-2 outline-none">
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-[#4A444A] uppercase mb-1">Cód. Barras</label>
-                        <input type="text" name="codigoBarras" class="w-full border-b-2 border-[#BFA2DB] p-2 outline-none" placeholder="Opcional">
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Código</label>
+                        <input type="text" name="codigoBarras" class="w-full border-b-2 border-lavanda p-2 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[#4A444A] uppercase mb-1">Stock Inicial</label>
-                        <input type="number" name="existencias" class="w-full border-b-2 border-[#BFA2DB] p-2 outline-none" placeholder="0" required>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Stock</label>
+                        <input type="number" name="existencias" required class="w-full border-b-2 border-lavanda p-2 outline-none">
                     </div>
                 </div>
-
-                <div class="flex flex-col md:flex-row justify-end space-y-3 md:space-y-0 md:space-x-3 pt-4">
-                    <button type="button" onclick="cerrarModal()" class="text-gray-500 font-bold py-2 order-2 md:order-1">Cancelar</button>
-                    <button type="submit" class="bg-[#BFA2DB] text-[#2B2B2B] px-8 py-3 rounded-lg font-bold shadow-md hover:brightness-95 order-1 md:order-2">
-                        Guardar Producto
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-lavanda text-gris-oscuro font-bold py-3 rounded-xl shadow-md hover:scale-[1.02] transition-transform">
+                        Guardar en Inventario
                     </button>
                 </div>
             </form>
