@@ -15,6 +15,13 @@ class Producto extends Model
         'precioVenta',
         'existenciasActuales',
         'stockMinimo',
-        'empresaId'
+        'empresaId',
+        'categoriaId'
     ];
+
+    // Relación con la categoría
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class, 'categoriaId');
+    }
 }

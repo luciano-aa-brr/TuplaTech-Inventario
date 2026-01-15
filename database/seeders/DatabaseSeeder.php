@@ -19,6 +19,11 @@ class DatabaseSeeder extends Seeder
             'correoContacto' => 'contacto@elsocio.com',
         ]);
 
+        // 1.5 Creamos categorías de prueba
+        $bebidas = Categoria::create(['nombreCategoria' => 'Bebidas', 'empresaId' => $miEmpresa->id]);
+        $abarrotes = Categoria::create(['nombreCategoria' => 'Abarrotes', 'empresaId' => $miEmpresa->id]);
+        $limpieza = Categoria::create(['nombreCategoria' => 'Limpieza', 'empresaId' => $miEmpresa->id]);
+
         // 2. Creamos un Usuario administrador para esa empresa
         Usuario::create([
             'nombreUsuario' => 'AdminTupla',
